@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLIXIO - Streaming de Filmes e Séries</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Tela de Seleção de Perfil -->
+    <section id="profile-selection" class="profile-selection">
+        <header class="header-profiles">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100'%3E%3Ctext x='50' y='70' font-size='60' fill='%23E50914' font-weight='bold' font-family='Arial'%3EFLIXIO%3C/text%3E%3C/svg%3E" alt="FLIXIO" class="logo">
+        </header>
+
+        <main class="profiles-container">
+            <h1>Quem está assistindo?</h1>
+            
+            <div class="profiles-grid" id="profilesGrid">
+                <article class="profile-card" data-profile="alice">
+                    <div class="profile-avatar">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%234169E1' width='100' height='100'/%3E%3Ccircle cx='50' cy='35' r='15' fill='white'/%3E%3Cpath d='M 20 70 Q 50 60 80 70 L 80 100 L 20 100' fill='white'/%3E%3C/svg%3E" alt="Alice">
+                        <span class="profile-name">Alice</span>
+                    </div>
+                </article>
+
+                <article class="profile-card" data-profile="bob">
+                    <div class="profile-avatar">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23DC143C' width='100' height='100'/%3E%3Ccircle cx='50' cy='35' r='15' fill='white'/%3E%3Cpath d='M 20 70 Q 50 60 80 70 L 80 100 L 20 100' fill='white'/%3E%3C/svg%3E" alt="Bob">
+                        <span class="profile-name">Bob</span>
+                    </div>
+                </article>
+
+                <article class="profile-card" data-profile="carol">
+                    <div class="profile-avatar">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23FFD700' width='100' height='100'/%3E%3Ccircle cx='50' cy='35' r='15' fill='white'/%3E%3Cpath d='M 20 70 Q 50 60 80 70 L 80 100 L 20 100' fill='white'/%3E%3C/svg%3E" alt="Carol">
+                        <span class="profile-name">Carol</span>
+                    </div>
+                </article>
+
+                <article class="profile-card" data-profile="david">
+                    <div class="profile-avatar">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%2320B2AA' width='100' height='100'/%3E%3Ccircle cx='50' cy='35' r='15' fill='white'/%3E%3Cpath d='M 20 70 Q 50 60 80 70 L 80 100 L 20 100' fill='white'/%3E%3C/svg%3E" alt="David">
+                        <span class="profile-name">David</span>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </section>
+
+    <!-- Tela Principal do Conteúdo -->
+    <section id="main-content" class="main-content hidden">
+        <!-- Navegação -->
+        <nav class="navbar">
+            <header class="navbar-header">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100'%3E%3Ctext x='50' y='70' font-size='60' fill='%23E50914' font-weight='bold' font-family='Arial'%3EFLIXIO%3C/text%3E%3C/svg%3E" alt="FLIXIO" class="navbar-logo">
+            </header>
+            <ul class="navbar-menu">
+                <li><a href="#" class="nav-link active">Início</a></li>
+                <li><a href="#" class="nav-link">Séries</a></li>
+                <li><a href="#" class="nav-link">Filmes</a></li>
+                <li><a href="#" class="nav-link">Novidades</a></li>
+                <li><a href="#" class="nav-link">Minha Lista</a></li>
+            </ul>
+            <div class="navbar-right">
+                <button class="profile-btn" id="profileChangeBtn">Trocar Perfil</button>
+                <button class="logout-btn" id="logoutBtn">Sair</button>
+            </div>
+        </nav>
+
+        <!-- Hero Banner -->
+        <section class="hero-banner">
+            <div class="hero-background" id="heroBg"></div>
+            <div class="hero-content">
+                <h1 id="heroTitle" class="hero-title">Título do Filme</h1>
+                <p id="heroDesc" class="hero-description">Uma descrição emocionante do conteúdo</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary">▶ Assistir</button>
+                    <button class="btn btn-secondary">ℹ Mais Informações</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seções de Conteúdo -->
+        <main class="content-sections">
+            <section class="content-row" id="continueWatchingSection">
+                <h2>Continuar Assistindo</h2>
+                <div class="carousel" id="continueWatching">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+            </section>
+
+            <section class="content-row" id="trendingSection">
+                <h2>Populares na Plataforma</h2>
+                <div class="carousel" id="trendingCarousel">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+            </section>
+
+            <section class="content-row" id="actionSection">
+                <h2>Ação e Aventura</h2>
+                <div class="carousel" id="actionCarousel">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+            </section>
+
+            <section class="content-row" id="dramaSection">
+                <h2>Drama</h2>
+                <div class="carousel" id="dramaCarousel">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+            </section>
+
+            <section class="content-row" id="comedySection">
+                <h2>Comédia</h2>
+                <div class="carousel" id="comedyCarousel">
+                    <!-- Preenchido dinamicamente -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Rodapé -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 FLIXIO. Todos os direitos reservados.</p>
+                <ul class="footer-links">
+                    <li><a href="#">Privacidade</a></li>
+                    <li><a href="#">Termos de Serviço</a></li>
+                    <li><a href="#">Contato</a></li>
+                </ul>
+            </div>
+        </footer>
+    </section>
+
+    <script src="app.js"></script>
+</body>
+</html>
