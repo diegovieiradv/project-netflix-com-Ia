@@ -288,12 +288,23 @@ function selectProfile(profileName) {
   currentProfile = profileName;
   const profileData = profilesData[profileName];
 
-  // Esconder seleção de perfil, mostrar conteúdo
-  profileSelection.classList.add("hidden");
-  mainContent.classList.remove("hidden");
-
-  // Carregar conteúdo do perfil
-  loadProfileContent(profileData);
+  // Efeito de fade out
+  profileSelection.style.opacity = "0";
+  
+  // Aguardar transição e então esconder/mostrar
+  setTimeout(() => {
+    profileSelection.classList.add("hidden");
+    mainContent.classList.remove("hidden");
+    mainContent.style.opacity = "0";
+    
+    // Carregar conteúdo do perfil
+    loadProfileContent(profileData);
+    
+    // Fade in
+    setTimeout(() => {
+      mainContent.style.opacity = "1";
+    }, 10);
+  }, 300);
 }
 
 function loadProfileContent(profileData) {
@@ -333,9 +344,22 @@ function loadCarousel(elementId, items) {
 }
 
 function goBackToProfileSelection() {
-  profileSelection.classList.remove("hidden");
-  mainContent.classList.add("hidden");
-  currentProfile = null;
+  // Efeito de fade out
+  mainContent.style.opacity = "0";
+  
+  // Aguardar transição
+  setTimeout(() => {
+    mainContent.classList.add("hidden");
+    profileSelection.classList.remove("hidden");
+    profileSelection.style.opacity = "0";
+    
+    currentProfile = null;
+    
+    // Fade in
+    setTimeout(() => {
+      profileSelection.style.opacity = "1";
+    }, 10);
+  }, 300);
 }
 
 // ===== EVENT LISTENERS =====
