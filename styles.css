@@ -1046,7 +1046,7 @@ body {
 
   .profiles-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.8rem;
+    gap: 3.8rem;
   }
 
   .profile-avatar {
