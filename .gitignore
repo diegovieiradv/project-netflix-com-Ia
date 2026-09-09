@@ -4,3 +4,5 @@ node_modules/
 .Rhistory
 .vscode/
 .idea/
+.vercel
+.playwright-mcp/
