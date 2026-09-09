@@ -1,4 +1,4 @@
-import { State } from '../state.js';
+import { State, Toast } from '../state.js';
 import { categories, allMovies } from '../data.js';
 import { navigateTo } from '../router.js';
 import { createHeroBanner } from './HeroBanner.js';
@@ -33,19 +33,49 @@ export function renderCatalogScreen(container) {
     const navMenu = document.createElement('ul');
     navMenu.className = 'navbar-menu';
 
-    const links = ['Início', 'Séries', 'Filmes', 'Novidades', 'Minha Lista'];
-    links.forEach((text, idx) => {
+    const linkFilters = [
+        { text: 'Início', filter: 'all' },
+        { text: 'Séries', filter: 'series' },
+        { text: 'Filmes', filter: 'movies' },
+        { text: 'Novidades', filter: 'new' },
+        { text: 'Minha Lista', filter: 'favorites' }
+    ];
+
+    let currentFilter = 'all';
+
+    linkFilters.forEach((linkData, idx) => {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = '#';
         a.className = 'nav-link' + (idx === 0 ? ' active' : '');
-        a.textContent = text;
-        a.addEventListener('click', (e) => e.preventDefault());
+        a.textContent = linkData.text;
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentFilter = linkData.filter;
+            // Update active state
+            navMenu.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            a.classList.add('active');
+            // Re-render content
+            renderContent();
+        });
         li.appendChild(a);
         navMenu.appendChild(li);
     });
 
     navbar.appendChild(navMenu);
+
+    // Search input
+    const searchContainer = document.createElement('div');
+    searchContainer.style.flex = '1';
+    searchContainer.style.maxWidth = '300px';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'search';
+    searchInput.className = 'nav-search';
+    searchInput.placeholder = 'Buscar...';
+    searchInput.setAttribute('aria-label', 'Buscar filmes e séries');
+    searchContainer.appendChild(searchInput);
+    navbar.appendChild(searchContainer);
 
     // Right side
     const navbarRight = document.createElement('div');
@@ -73,21 +103,10 @@ export function renderCatalogScreen(container) {
     navbar.appendChild(navbarRight);
     wrapper.appendChild(navbar);
 
-    // ===== HERO BANNER =====
-    const heroMovie = allMovies[0] || null;
-    const heroBanner = createHeroBanner(heroMovie);
-    wrapper.appendChild(heroBanner);
-
-    // ===== CONTENT SECTIONS =====
-    const sections = document.createElement('main');
-    sections.className = 'sliders-container';
-
-    categories.forEach(category => {
-        const carousel = createCarousel(category);
-        sections.appendChild(carousel);
-    });
-
-    wrapper.appendChild(sections);
+    // ===== CONTENT AREA (dynamically rendered) =====
+    const contentArea = document.createElement('div');
+    contentArea.id = 'catalog-content';
+    wrapper.appendChild(contentArea);
 
     // ===== FOOTER =====
     const footer = document.createElement('footer');
@@ -96,7 +115,7 @@ export function renderCatalogScreen(container) {
     footerContent.className = 'footer-content';
 
     const copyright = document.createElement('p');
-    copyright.textContent = '© 2024 FLIXIO. Todos os direitos reservados.';
+    copyright.textContent = '© ' + new Date().getFullYear() + ' FLIXIO. Todos os direitos reservados.';
     footerContent.appendChild(copyright);
 
     const footerLinks = document.createElement('ul');
@@ -118,4 +137,148 @@ export function renderCatalogScreen(container) {
     wrapper.appendChild(footer);
 
     container.appendChild(wrapper);
+
+    // ===== CONTENT RENDERING FUNCTION =====
+    function renderContent() {
+        // Clear content area
+        while (contentArea.firstChild) {
+            contentArea.removeChild(contentArea.firstChild);
+        }
+
+        const searchQuery = searchInput.value.trim().toLowerCase();
+
+        // Filter logic
+        let filteredCategories = categories;
+
+        if (currentFilter === 'favorites') {
+            const favTitles = State.getFavorites(profile.id);
+            if (favTitles.length === 0) {
+                // Show empty favorites
+                const emptySection = document.createElement('section');
+                emptySection.className = 'favorites-section';
+                const emptyH2 = document.createElement('h2');
+                emptyH2.textContent = 'Minha Lista';
+                emptySection.appendChild(emptyH2);
+                const emptyP = document.createElement('p');
+                emptyP.className = 'favorites-empty';
+                emptyP.textContent = 'Sua lista está vazia. Adicione filmes e séries clicando no botão "+".';
+                emptySection.appendChild(emptyP);
+                contentArea.appendChild(emptySection);
+                return;
+            }
+            // Create favorites category
+            const favItems = [];
+            allMovies.forEach(movie => {
+                if (favTitles.includes(movie.title)) {
+                    favItems.push(movie);
+                }
+            });
+            const favCategory = { title: 'Minha Lista', items: favItems };
+            const carousel = createCarousel(favCategory);
+            contentArea.appendChild(carousel);
+            return;
+        }
+
+        if (currentFilter === 'series') {
+            filteredCategories = categories.filter(cat =>
+                cat.title === 'Séries' || cat.title === 'Para maratonar' ||
+                cat.items.some(item => item.category === 'Séries')
+            );
+        } else if (currentFilter === 'movies') {
+            filteredCategories = categories.filter(cat =>
+                cat.title !== 'Séries' && cat.title !== 'Para maratonar' &&
+                cat.items.some(item => item.category !== 'Séries')
+            );
+        } else if (currentFilter === 'new') {
+            filteredCategories = categories.filter(cat =>
+                cat.items.some(item => item.badge)
+            );
+        }
+
+        // Search filter
+        if (searchQuery) {
+            filteredCategories = filteredCategories.map(cat => ({
+                ...cat,
+                items: cat.items.filter(item =>
+                    (item.title && item.title.toLowerCase().includes(searchQuery)) ||
+                    (item.category && item.category.toLowerCase().includes(searchQuery)) ||
+                    (item.genres && item.genres.some(g => g.toLowerCase().includes(searchQuery)))
+                )
+            })).filter(cat => cat.items.length > 0);
+        }
+
+        // Show loading skeleton first
+        const skeletonBanner = document.createElement('div');
+        skeletonBanner.className = 'skeleton skeleton-banner';
+        contentArea.appendChild(skeletonBanner);
+
+        const skeletonSection = document.createElement('div');
+        skeletonSection.className = 'sliders-container';
+        skeletonSection.style.paddingTop = '0';
+        for (let i = 0; i < 3; i++) {
+            const skelRow = document.createElement('div');
+            skelRow.className = 'slider-section';
+            const skelHeader = document.createElement('div');
+            skelHeader.className = 'slider-header';
+            const skelTitle = document.createElement('div');
+            skelTitle.className = 'skeleton skeleton-text';
+            skelTitle.style.width = '150px';
+            skelHeader.appendChild(skelTitle);
+            skelRow.appendChild(skelHeader);
+            const skelCards = document.createElement('div');
+            skelCards.className = 'movie-row';
+            for (let j = 0; j < 4; j++) {
+                const skelCard = document.createElement('div');
+                skelCard.className = 'skeleton skeleton-card';
+                skelCards.appendChild(skelCard);
+            }
+            skelRow.appendChild(skelCards);
+            skeletonSection.appendChild(skelRow);
+        }
+        contentArea.appendChild(skeletonSection);
+
+        // Remove skeleton and render real content after brief delay
+        setTimeout(() => {
+            while (contentArea.firstChild) {
+                contentArea.removeChild(contentArea.firstChild);
+            }
+
+            // Hero banner
+            const heroMovie = allMovies[0] || null;
+            const heroBanner = createHeroBanner(heroMovie);
+            contentArea.appendChild(heroBanner);
+
+            // Content sections
+            const sections = document.createElement('main');
+            sections.className = 'sliders-container';
+
+            if (filteredCategories.length === 0 && searchQuery) {
+                const noResults = document.createElement('div');
+                noResults.style.textAlign = 'center';
+                noResults.style.padding = '3rem';
+                noResults.style.color = '#737373';
+                noResults.textContent = 'Nenhum resultado encontrado para "' + searchQuery + '"';
+                sections.appendChild(noResults);
+            }
+
+            filteredCategories.forEach(category => {
+                const carousel = createCarousel(category);
+                sections.appendChild(carousel);
+            });
+
+            contentArea.appendChild(sections);
+        }, 500);
+    }
+
+    // Search input handler with debounce
+    let searchTimeout;
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            renderContent();
+        }, 300);
+    });
+
+    // Initial render
+    renderContent();
 }

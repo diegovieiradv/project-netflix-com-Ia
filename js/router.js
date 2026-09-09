@@ -1,9 +1,26 @@
-const routes = {};
-let currentRoute = null;
-let routeTransitionTimeout = null;
+var routes = {};
+var currentRoute = null;
+var routeTransitionTimeout = null;
+var keyHandlers = [];
 
 export function registerRoute(hash, renderFn) {
     routes[hash] = renderFn;
+}
+
+export function registerKeyHandler(fn) {
+    keyHandlers.push(fn);
+}
+
+export function clearKeyHandlers() {
+    keyHandlers.length = 0;
+}
+
+export function scrollRow(row, direction) {
+    var scrollAmount = 400;
+    row.scrollBy({
+        left: direction === 'next' ? scrollAmount : -scrollAmount,
+        behavior: 'smooth'
+    });
 }
 
 function getHash() {
@@ -17,8 +34,8 @@ function handleRouteChange() {
         routeTransitionTimeout = null;
     }
 
-    const hash = getHash();
-    const renderFn = routes[hash];
+    var hash = getHash();
+    var renderFn = routes[hash];
 
     if (!renderFn) {
         window.location.replace('#profiles');
@@ -28,13 +45,15 @@ function handleRouteChange() {
     if (currentRoute === hash) return;
     currentRoute = hash;
 
-    const app = document.getElementById('app');
+    clearKeyHandlers();
+
+    var app = document.getElementById('app');
     if (!app) return;
 
     // Fade out
     app.style.opacity = '0';
 
-    routeTransitionTimeout = setTimeout(() => {
+    routeTransitionTimeout = setTimeout(function() {
         routeTransitionTimeout = null;
         // Clear and render new content
         while (app.firstChild) {
@@ -49,7 +68,7 @@ function handleRouteChange() {
         }
 
         // Fade in
-        requestAnimationFrame(() => {
+        requestAnimationFrame(function() {
             app.style.opacity = '1';
         });
     }, 300);
@@ -61,6 +80,12 @@ export function navigateTo(hash) {
 
 export function initRouter() {
     window.addEventListener('hashchange', handleRouteChange);
+
+    window.addEventListener('keydown', function(e) {
+        keyHandlers.forEach(function(fn) {
+            try { fn(e); } catch(err) { console.error('Key handler error:', err); }
+        });
+    });
 
     if (!window.location.hash) {
         window.location.replace('#profiles');

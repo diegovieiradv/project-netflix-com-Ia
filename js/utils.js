@@ -36,3 +36,54 @@ export function sanitizeString(str) {
         return map[c];
     });
 }
+
+// Deterministic random based on seed string
+export function seededRandom(seed) {
+    let hash = 0;
+    const str = String(seed);
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+// Deterministic match score per movie
+export function getMatchScore(title) {
+    const hash = seededRandom(title || 'default');
+    return 70 + (hash % 30);
+}
+
+// Deterministic duration per movie
+export function getDuration(item) {
+    if (item.progress) return '10 temporadas';
+    const hash = seededRandom(item.title || 'unknown');
+    const hours = 1 + (hash % 3);
+    const minutes = (hash * 7) % 60;
+    return hours + 'h ' + String(minutes).padStart(2, '0') + 'm';
+}
+
+// Genre color mapping
+export function getGenreColor(genre) {
+    const colors = {
+        'Ação': '#E50914',
+        'Comédia': '#FFB81C',
+        'Drama': '#4169E1',
+        'Ficção Científica': '#46d369',
+        'Romance': '#FF69B4',
+        'Terror': '#8B0000',
+        'Suspense': '#FF8C00',
+        'Thriller': '#9932CC',
+        'Crime': '#DC143C',
+        'Épico': '#CD853F',
+        'Animação': '#00CED1',
+        'Fantasia': '#9370DB',
+        'Aventura': '#2E8B57',
+        'Documentário': '#708090',
+        'Musical': '#FF1493',
+        'Guerra': '#556B2F',
+        'Biografia': '#B8860B'
+    };
+    return colors[genre] || '#666';
+}

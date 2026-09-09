@@ -1,4 +1,5 @@
-import { getYouTubeId, getRandomMatchScore, getRandomDuration, getRandomAgeBadge, generatePoster } from '../utils.js';
+import { getYouTubeId, getMatchScore, getDuration, getRandomAgeBadge, generatePoster } from '../utils.js';
+import { State, Toast } from '../state.js';
 
 export function createContentCard(item) {
     const card = document.createElement('div');
@@ -46,14 +47,39 @@ export function createContentCard(item) {
     playI.className = 'fas fa-play';
     playI.style.marginLeft = '2px';
     playBtn.appendChild(playI);
+    playBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.dispatchEvent(new CustomEvent('open:video', { detail: item }));
+    });
     leftBtns.appendChild(playBtn);
 
     const addBtn = document.createElement('button');
     addBtn.className = 'btn-icon';
-    addBtn.setAttribute('aria-label', item.progress ? 'Adicionado' : 'Adicionar à lista');
+    addBtn.setAttribute('aria-label', 'Adicionar à lista');
     const addI = document.createElement('i');
-    addI.className = item.progress ? 'fas fa-check' : 'fas fa-plus';
+    addI.className = 'fas fa-plus';
     addBtn.appendChild(addI);
+    // Check if already favorited
+    const currentProfile = State.getCurrentProfile();
+    if (currentProfile && State.isFavorite(currentProfile.id, item.title)) {
+        addI.className = 'fas fa-check';
+        addBtn.setAttribute('aria-label', 'Adicionado');
+    }
+    addBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const profile = State.getCurrentProfile();
+        if (!profile) return;
+        const result = State.toggleFavorite(profile.id, item.title);
+        if (result && result.includes(item.title)) {
+            addI.className = 'fas fa-check';
+            addBtn.setAttribute('aria-label', 'Adicionado');
+            Toast.success('Adicionado à Minha Lista');
+        } else {
+            addI.className = 'fas fa-plus';
+            addBtn.setAttribute('aria-label', 'Adicionar à lista');
+            Toast.info('Removido da Minha Lista');
+        }
+    });
     leftBtns.appendChild(addBtn);
 
     const likeBtn = document.createElement('button');
@@ -73,6 +99,10 @@ export function createContentCard(item) {
     const expandI = document.createElement('i');
     expandI.className = 'fas fa-chevron-down';
     expandBtn.appendChild(expandI);
+    expandBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.dispatchEvent(new CustomEvent('open:details', { detail: item }));
+    });
     rightBtns.appendChild(expandBtn);
 
     buttonsRow.appendChild(leftBtns);
@@ -85,7 +115,7 @@ export function createContentCard(item) {
 
     const matchScore = document.createElement('span');
     matchScore.className = 'match-score';
-    matchScore.textContent = getRandomMatchScore() + '% relevante';
+    matchScore.textContent = getMatchScore(item.title) + '% relevante';
     infoRow.appendChild(matchScore);
 
     const age = document.createElement('span');
@@ -95,7 +125,7 @@ export function createContentCard(item) {
 
     const duration = document.createElement('span');
     duration.className = 'duration';
-    duration.textContent = getRandomDuration(item.progress);
+    duration.textContent = getDuration(item);
     infoRow.appendChild(duration);
 
     const hd = document.createElement('span');
@@ -105,22 +135,15 @@ export function createContentCard(item) {
 
     details.appendChild(infoRow);
 
-    // Tags row
+    // Tags row - dynamic from genres
     const tagsRow = document.createElement('div');
     tagsRow.className = 'details-tags';
-
-    const tag1 = document.createElement('span');
-    tag1.textContent = 'Empolgante';
-    tagsRow.appendChild(tag1);
-
-    const tag2 = document.createElement('span');
-    tag2.textContent = 'Animação';
-    tagsRow.appendChild(tag2);
-
-    const tag3 = document.createElement('span');
-    tag3.textContent = 'Ficção';
-    tagsRow.appendChild(tag3);
-
+    const genres = item.genres || ['Filme'];
+    genres.slice(0, 3).forEach((genre, idx) => {
+        const tag = document.createElement('span');
+        tag.textContent = genre;
+        tagsRow.appendChild(tag);
+    });
     details.appendChild(tagsRow);
 
     // Assemble card (details first so img/iframe are on top)
@@ -196,8 +219,7 @@ export function createContentCard(item) {
     card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            card.dispatchEvent(new MouseEvent('mouseenter'));
-            setTimeout(() => card.dispatchEvent(new MouseEvent('mouseleave')), 1000);
+            document.dispatchEvent(new CustomEvent('open:video', { detail: item }));
         }
     });
 

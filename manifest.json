@@ -1,0 +1,16 @@
+{
+    "name": "FLIXIO Streaming",
+    "short_name": "FLIXIO",
+    "description": "Streaming de Filmes e Séries",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#141414",
+    "theme_color": "#141414",
+    "icons": [
+        {
+            "src": "favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

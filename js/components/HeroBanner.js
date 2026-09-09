@@ -1,4 +1,5 @@
 import { generatePoster } from '../utils.js';
+import { State, Toast } from '../state.js';
 
 export function createHeroBanner(movie) {
     const banner = document.createElement('section');
@@ -42,7 +43,30 @@ export function createHeroBanner(movie) {
     playIcon.textContent = '▶ ';
     watchBtn.appendChild(playIcon);
     watchBtn.appendChild(document.createTextNode('Assistir'));
+    watchBtn.addEventListener('click', () => {
+        if (movie) {
+            document.dispatchEvent(new CustomEvent('open:video', { detail: movie }));
+        }
+    });
     buttons.appendChild(watchBtn);
+
+    const myListBtn = document.createElement('button');
+    myListBtn.className = 'btn btn-secondary';
+    const myListIcon = document.createElement('span');
+    myListIcon.textContent = '＋ ';
+    myListBtn.appendChild(myListIcon);
+    myListBtn.appendChild(document.createTextNode('Minha Lista'));
+    myListBtn.addEventListener('click', () => {
+        const profile = State.getCurrentProfile();
+        if (!profile || !movie) return;
+        const result = State.toggleFavorite(profile.id, movie.title);
+        if (result && result.includes(movie.title)) {
+            Toast.success('Adicionado à Minha Lista');
+        } else {
+            Toast.info('Removido da Minha Lista');
+        }
+    });
+    buttons.appendChild(myListBtn);
 
     const infoBtn = document.createElement('button');
     infoBtn.className = 'btn btn-secondary';
@@ -50,6 +74,11 @@ export function createHeroBanner(movie) {
     infoIcon.textContent = 'ℹ ';
     infoBtn.appendChild(infoIcon);
     infoBtn.appendChild(document.createTextNode('Mais Informações'));
+    infoBtn.addEventListener('click', () => {
+        if (movie) {
+            document.dispatchEvent(new CustomEvent('open:details', { detail: movie }));
+        }
+    });
     buttons.appendChild(infoBtn);
 
     content.appendChild(buttons);
