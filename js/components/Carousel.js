@@ -1,16 +1,16 @@
-import { createCard } from './Card.js';
+import { createContentCard } from './ContentCard.js';
 
 export function createCarousel(category) {
     const section = document.createElement('div');
     section.className = 'slider-section';
 
-    // Header for Title and Indicators
+    // Header
     const header = document.createElement('div');
     header.className = 'slider-header';
 
     const title = document.createElement('h2');
     title.className = 'slider-title';
-    title.innerText = category.title;
+    title.textContent = category.title;
 
     const indicators = document.createElement('div');
     indicators.className = 'slider-indicators';
@@ -19,11 +19,12 @@ export function createCarousel(category) {
     header.appendChild(indicators);
     section.appendChild(header);
 
+    // Movie row
     const row = document.createElement('div');
     row.className = 'movie-row';
 
     category.items.forEach(item => {
-        const card = createCard(item);
+        const card = createContentCard(item);
         row.appendChild(card);
     });
 

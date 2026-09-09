@@ -1,0 +1,144 @@
+import { State } from '../state.js';
+import { navigateTo } from '../router.js';
+import { createProfileModal } from './ProfileModal.js';
+
+export function renderProfileScreen(container) {
+    const section = document.createElement('section');
+    section.className = 'profile-selection';
+
+    // Header with logo
+    const header = document.createElement('header');
+    header.className = 'header-profiles';
+
+    const logo = document.createElement('img');
+    logo.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100'%3E%3Ctext x='50' y='70' font-size='60' fill='%23E50914' font-weight='bold' font-family='Arial'%3EFLIXIO%3C/text%3E%3C/svg%3E";
+    logo.alt = 'FLIXIO';
+    logo.className = 'logo';
+    header.appendChild(logo);
+    section.appendChild(header);
+
+    // Main content
+    const main = document.createElement('main');
+    main.className = 'profiles-container';
+
+    const h1 = document.createElement('h1');
+    h1.textContent = 'Quem está assistindo?';
+    main.appendChild(h1);
+
+    const grid = document.createElement('ul');
+    grid.className = 'profiles-grid';
+
+    const profiles = State.getProfiles();
+
+    profiles.forEach(profile => {
+        const li = document.createElement('li');
+
+        const card = document.createElement('article');
+        card.className = 'profile-card';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'profile-avatar';
+
+        if (profile.avatarType === 'image' && profile.avatar) {
+            const img = document.createElement('img');
+            img.src = profile.avatar;
+            img.alt = profile.name;
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.addEventListener('error', () => {
+                // Fallback to generated avatar - check if img is still a child
+                if (avatar.contains(img)) {
+                    const fallbackDiv = document.createElement('div');
+                    fallbackDiv.className = 'avatar-generated';
+                    fallbackDiv.style.backgroundColor = profile.color;
+                    fallbackDiv.textContent = profile.avatarIcon || '👤';
+                    avatar.replaceChild(fallbackDiv, img);
+                }
+            });
+            avatar.appendChild(img);
+        } else {
+            const generated = document.createElement('div');
+            generated.className = 'avatar-generated';
+            generated.style.backgroundColor = profile.color || '#E50914';
+            generated.textContent = profile.avatarIcon || '👤';
+            avatar.appendChild(generated);
+        }
+
+        // Edit button on hover
+        const editBtn = document.createElement('button');
+        editBtn.className = 'profile-edit-btn';
+        editBtn.setAttribute('aria-label', 'Editar perfil');
+        const editIcon = document.createElement('i');
+        editIcon.className = 'fas fa-pencil-alt';
+        editBtn.appendChild(editIcon);
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            createProfileModal(profile.id, (updates) => {
+                State.updateProfile(profile.id, updates);
+                // Re-render the entire profile screen
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                renderProfileScreen(container);
+            }, (id) => {
+                State.removeProfile(id);
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                renderProfileScreen(container);
+            });
+        });
+        avatar.appendChild(editBtn);
+
+        card.appendChild(avatar);
+
+        const name = document.createElement('p');
+        name.className = 'profile-name-text';
+        name.textContent = profile.name;
+        card.appendChild(name);
+
+        card.addEventListener('click', () => {
+            State.setCurrentProfile(profile.id);
+            navigateTo('#catalog');
+        });
+
+        li.appendChild(card);
+        grid.appendChild(li);
+    });
+
+    // Add profile card
+    const addLi = document.createElement('li');
+    const addCard = document.createElement('article');
+    addCard.className = 'profile-card add-profile-card';
+
+    const addAvatar = document.createElement('div');
+    addAvatar.className = 'profile-avatar add-avatar';
+
+    const addIcon = document.createElement('div');
+    addIcon.className = 'add-icon';
+    addIcon.textContent = '+';
+    addAvatar.appendChild(addIcon);
+    addCard.appendChild(addAvatar);
+
+    const addName = document.createElement('p');
+    addName.className = 'profile-name-text';
+    addName.textContent = 'Adicionar Perfil';
+    addCard.appendChild(addName);
+
+    addCard.addEventListener('click', () => {
+        createProfileModal(null, (data) => {
+            State.addProfile(data);
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            renderProfileScreen(container);
+        }, () => {});
+    });
+
+    addLi.appendChild(addCard);
+    grid.appendChild(addLi);
+
+    main.appendChild(grid);
+    section.appendChild(main);
+    container.appendChild(section);
+}
